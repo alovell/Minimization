@@ -1,0 +1,14 @@
+162.39595	!V
+0.97968 	!r
+0.686173	!a
+0		!W
+0		!rw
+0		!aw
+48.71683	!Ws
+1.110656	!rs
+0.303660	!as
+0		!Vso
+0		!rso
+0		!aso
+
+! zeros indicate that the parameter is not fitted
