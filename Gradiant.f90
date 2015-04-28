@@ -1,13 +1,13 @@
    program gradmin
    implicit none
-   real*8 parm(12),initparm(12),chi,chinew,step
+   real*8 parm(12),initparm(12),chi,chinew,step,mean(12),sigma(12)
    integer nlines,io,i,nfit,j,k
    real*8, allocatable :: data(:,:)
    integer, allocatable :: fitparm(:)
    real*8, allocatable :: grad(:)
    
    ! define the step size
-   step = 0.01d0
+   step = 0.00001d0
    
    ! read in inital parameters
    nfit = 0
@@ -57,6 +57,13 @@
       !print *, parm(i)
    enddo 
    
+   ! read in the parameter bounds
+   open(unit=8,file="limits.txt")
+   do i=1,12
+      read(8,*) mean(i),sigma(i)
+      !print *, mean(i),sigma(i)
+   enddo 
+   
    ! need to repeat from here
    ! count the number of iterations
    k=0
@@ -75,7 +82,7 @@
    
    ! find the gradiant of chi square function
    allocate (grad(nfit))
-   call calcgrad(parm,fitparm,nfit,data,nlines,grad)
+   call calcgrad(parm,fitparm,nfit,data,nlines,grad,mean,sigma)
    
    ! move the points - gradient descent
    do i=1,12
@@ -111,7 +118,7 @@
    ! repeat until here
    k = k + 1
    !print *, k
-   !if (k>10) exit
+   !if (k>25) exit
    enddo
    !print *, k,chinew
    
