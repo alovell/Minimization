@@ -1,13 +1,15 @@
    program gradmin
    implicit none
-   real*8 parm(12),initparm(12),chi,chinew
-   integer nlines,io,i,nfit,j
+   real*8 parm(12),initparm(12),chi,chinew,step
+   integer nlines,io,i,nfit,j,k
    real*8, allocatable :: data(:,:)
    integer, allocatable :: fitparm(:)
    real*8, allocatable :: grad(:)
    
-   ! read in inital parameters - given by user and specified in original input file
-   ! can put this into a subroutine
+   ! define the step size
+   step = 0.01d0
+   
+   ! read in inital parameters
    nfit = 0
    open(unit=1,file="fittingparm.txt")
    do i=1,12
@@ -56,6 +58,10 @@
    enddo 
    
    ! need to repeat from here
+   ! count the number of iterations
+   k=0
+   do 
+     ! print *, k
    
    ! replace values in the input file
    call inputfile(parm)
@@ -65,25 +71,49 @@
    
    ! calculate chi square
    call chicalc(data,nlines,chi)
-   print *, chi
+   print *, "chi=",chi
    
    ! find the gradiant of chi square function
    allocate (grad(nfit))
    call calcgrad(parm,fitparm,nfit,data,nlines,grad)
    
-   ! move the points
+   ! move the points - gradient descent
+   do i=1,12
+   do j=1,nfit
+      if (fitparm(j)==i) then
+         !print *, parm(i), "before",grad(j)
+         parm(i) = parm(i) - step*grad(j)
+	 !print *, parm(i), "after move"
+      end if
+   enddo 
+   enddo 
+   
+   deallocate (grad)
+   
+   ! keep parameters within physical bounds
+   !call keepphysical(parm,fitparm,nfit)
+   
+   ! remake input file and run fresco
+   call inputfile(parm)
+   call system("fresco < newfit.in > newfit.out")
    
    ! calculate chi square
    call chicalc(data,nlines,chinew)
+   print *, "newchi=", chinew
    
    ! need a condition for ending - if |newchi - chi| < some value
-   !if (abs(chinew - chi) < 0.1) then
-   !   exit
+   if (abs(chinew - chi) < 0.1d0) then
+      exit
    !else
    !   chi = chinew
-   !end if 
+   end if 
    
    ! repeat until here
+   k = k + 1
+   !print *, k
+   !if (k>10) exit
+   enddo
+   !print *, k,chinew
    
    ! print final values
    do i=1,12
