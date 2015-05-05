@@ -19,7 +19,6 @@
       ! if the angles between theory and experiment/data are the same
       ! calculate the residual
       if (idnint(data(1,j))==i) then
-         !print *, angle,data(1,j)
          res(j) = (xsth-data(2,j))/data(3,j)
 	 j = j + 1
       end if 

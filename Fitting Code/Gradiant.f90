@@ -1,13 +1,13 @@
    program gradmin
    implicit none
-   real*8 parm(12),initparm(12),chi,chinew,step,mean(12),sigma(12)
+   real*8 parm(12),initparm(12),chi,chinew,step,mean(12),sigma(12),w(12)
    integer nlines,io,i,nfit,j,k
    real*8, allocatable :: data(:,:)
    integer, allocatable :: fitparm(:)
    real*8, allocatable :: grad(:)
    
    ! define the step size
-   step = 0.00001d0
+   step = 0.0001d0
    
    ! read in inital parameters
    nfit = 0
@@ -60,15 +60,12 @@
    ! read in the parameter bounds
    open(unit=8,file="limits.txt")
    do i=1,12
-      read(8,*) mean(i),sigma(i)
-      !print *, mean(i),sigma(i)
+      read(8,*) mean(i),sigma(i),w(i)
    enddo 
-   
-   ! need to repeat from here
+
    ! count the number of iterations
    k=0
    do 
-     ! print *, k
    
    ! replace values in the input file
    call inputfile(parm)
@@ -78,27 +75,21 @@
    
    ! calculate chi square
    call chicalc(data,nlines,chi)
-   print *, "chi=",chi
    
    ! find the gradiant of chi square function
    allocate (grad(nfit))
-   call calcgrad(parm,fitparm,nfit,data,nlines,grad,mean,sigma)
+   call calcgrad(parm,fitparm,nfit,data,nlines,grad,mean,sigma,w)
    
    ! move the points - gradient descent
    do i=1,12
    do j=1,nfit
       if (fitparm(j)==i) then
-         !print *, parm(i), "before",grad(j)
          parm(i) = parm(i) - step*grad(j)
-	 !print *, parm(i), "after move"
       end if
    enddo 
    enddo 
    
    deallocate (grad)
-   
-   ! keep parameters within physical bounds
-   !call keepphysical(parm,fitparm,nfit)
    
    ! remake input file and run fresco
    call inputfile(parm)
@@ -106,25 +97,21 @@
    
    ! calculate chi square
    call chicalc(data,nlines,chinew)
-   print *, "newchi=", chinew
+   print *, k, chinew
    
    ! need a condition for ending - if |newchi - chi| < some value
    if (abs(chinew - chi) < 0.1d0) then
       exit
-   !else
-   !   chi = chinew
    end if 
-   
-   ! repeat until here
+
    k = k + 1
-   !print *, k
-   !if (k>25) exit
+   ! if a minimium isn't found, don't let the code run infinitely
+   if (k>500) exit
    enddo
-   !print *, k,chinew
    
    ! print final values
    do i=1,12
-      print *, parm(i)
+      print *, "#",parm(i)
    enddo 
    
    end program gradmin

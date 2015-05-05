@@ -190,10 +190,10 @@ CONTAINS
   !     corresponding to d[k]. 
   !     The function is modified from the version in Numerical recipe.
 
-  SUBROUTINE tqli(d,e,n)
+  SUBROUTINE tqli(d,e,n,z)
     IMPLICIT NONE
     INTEGER :: n 
-    REAL(DP)  :: d(n),e(n)
+    REAL(DP)  :: d(n),e(n),z(n,n)
     INTEGER :: i,iter,k,l,m
     REAL(DP)  :: b,c,dd,f,g,p,r,s,one
 
@@ -235,11 +235,11 @@ CONTAINS
              d(i+1)=g+p
              g=c*r-b
              !     Omit lines from here ...
-             !DO k=1,n
-             !   f=z(k,i+1)
-             !   z(k,i+1)=s*z(k,i)+c*f
-             !   z(k,i)=c*z(k,i)-s*f
-             !ENDDO
+             DO k=1,n
+                f=z(k,i+1)
+                z(k,i+1)=s*z(k,i)+c*f
+                z(k,i)=c*z(k,i)-s*f
+             ENDDO
              !     ... to here when finding only eigenvalues.
           ENDDO
           d(l)=d(l)-p
